@@ -1,0 +1,35 @@
+{
+    "name": "@crisvsgame/chroma",
+    "version": "0.0.1",
+    "description": "A lightweight colour utility library for sRGB conversion, luminance, contrast, and colour generation",
+    "keywords": [
+        "chroma",
+        "color",
+        "colour",
+        "utility",
+        "utilities",
+        "srgb",
+        "conversion",
+        "luminance",
+        "contrast",
+        "generation",
+        "wcag",
+        "palette",
+        "accessibility"
+    ],
+    "homepage": "https://github.com/CRISvsGAME/chroma#readme",
+    "bugs": {
+        "url": "https://github.com/CRISvsGAME/chroma/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/CRISvsGAME/chroma.git"
+    },
+    "license": "MIT",
+    "author": "CRISvsGAME <cris@crisvsgame.com>",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    }
+}
