@@ -20,4 +20,8 @@ export class Chroma {
             b: this.randomInt(0, 255),
         };
     }
+
+    public static srgbToCss({ r, g, b }: Srgb): string {
+        return `rgb(${r}, ${g}, ${b})`;
+    }
 }
