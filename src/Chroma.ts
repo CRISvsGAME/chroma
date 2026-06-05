@@ -25,9 +25,15 @@ export class Chroma {
         return `rgb(${r}, ${g}, ${b})`;
     }
 
-    public static srgbChannelToLinear(channel: number): number {
+    public static srgbChannelToLinearChannel(channel: number): number {
         const n = channel / 255;
 
         return n <= 0.04045 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4);
+    }
+
+    public static linearChannelToSrgbChannel(channel: number): number {
+        const n = channel <= 0.0031308 ? channel * 12.92 : 1.055 * Math.pow(channel, 1 / 2.4) - 0.055;
+
+        return Math.round(n * 255);
     }
 }
