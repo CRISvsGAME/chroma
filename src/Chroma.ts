@@ -4,6 +4,12 @@ export type Srgb = {
     b: number;
 };
 
+export type LinearRgb = {
+    r: number;
+    g: number;
+    b: number;
+};
+
 export class Chroma {
     public static randomInt(min: number, max: number): number {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -35,5 +41,13 @@ export class Chroma {
         const n = channel <= 0.0031308 ? channel * 12.92 : 1.055 * Math.pow(channel, 1 / 2.4) - 0.055;
 
         return Math.round(n * 255);
+    }
+
+    public static srgbToLinearRgb({ r, g, b }: Srgb): LinearRgb {
+        return {
+            r: this.srgbChannelToLinearChannel(r),
+            g: this.srgbChannelToLinearChannel(g),
+            b: this.srgbChannelToLinearChannel(b),
+        };
     }
 }
