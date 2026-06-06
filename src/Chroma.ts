@@ -50,4 +50,12 @@ export class Chroma {
             b: this.srgbChannelToLinearChannel(b),
         };
     }
+
+    public static linearRgbToSrgb({ r, g, b }: LinearRgb): Srgb {
+        return {
+            r: this.linearChannelToSrgbChannel(r),
+            g: this.linearChannelToSrgbChannel(g),
+            b: this.linearChannelToSrgbChannel(b),
+        };
+    }
 }
