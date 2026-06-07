@@ -63,7 +63,16 @@ export class Chroma {
         return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     }
 
-    public static srgbRelativeLuminance({ r, g, b }: Srgb): number {
-        return this.linearRelativeLuminance(this.srgbToLinearRgb({ r, g, b }));
+    public static srgbRelativeLuminance(srgb: Srgb): number {
+        return this.linearRelativeLuminance(this.srgbToLinearRgb(srgb));
+    }
+
+    public static linearRgbContrastRatio(first: LinearRgb, second: LinearRgb): number {
+        const firstLuminance = this.linearRelativeLuminance(first);
+        const secondLuminance = this.linearRelativeLuminance(second);
+        const lighter = Math.max(firstLuminance, secondLuminance);
+        const darker = Math.min(firstLuminance, secondLuminance);
+
+        return (lighter + 0.05) / (darker + 0.05);
     }
 }
