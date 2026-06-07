@@ -62,4 +62,8 @@ export class Chroma {
     public static linearRelativeLuminance({ r, g, b }: LinearRgb): number {
         return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     }
+
+    public static srgbRelativeLuminance({ r, g, b }: Srgb): number {
+        return this.linearRelativeLuminance(this.srgbToLinearRgb({ r, g, b }));
+    }
 }
