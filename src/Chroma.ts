@@ -75,4 +75,8 @@ export class Chroma {
 
         return (lighter + 0.05) / (darker + 0.05);
     }
+
+    public static srgbContrastRatio(first: Srgb, second: Srgb): number {
+        return this.linearRgbContrastRatio(this.srgbToLinearRgb(first), this.srgbToLinearRgb(second));
+    }
 }
