@@ -59,17 +59,17 @@ export class Chroma {
         };
     }
 
-    public static linearRelativeLuminance({ r, g, b }: LinearRgb): number {
+    public static linearRgbRelativeLuminance({ r, g, b }: LinearRgb): number {
         return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     }
 
     public static srgbRelativeLuminance(srgb: Srgb): number {
-        return this.linearRelativeLuminance(this.srgbToLinearRgb(srgb));
+        return this.linearRgbRelativeLuminance(this.srgbToLinearRgb(srgb));
     }
 
     public static linearRgbContrastRatio(first: LinearRgb, second: LinearRgb): number {
-        const firstLuminance = this.linearRelativeLuminance(first);
-        const secondLuminance = this.linearRelativeLuminance(second);
+        const firstLuminance = this.linearRgbRelativeLuminance(first);
+        const secondLuminance = this.linearRgbRelativeLuminance(second);
         const lighter = Math.max(firstLuminance, secondLuminance);
         const darker = Math.min(firstLuminance, secondLuminance);
 
@@ -78,5 +78,9 @@ export class Chroma {
 
     public static srgbContrastRatio(first: Srgb, second: Srgb): number {
         return this.linearRgbContrastRatio(this.srgbToLinearRgb(first), this.srgbToLinearRgb(second));
+    }
+
+    public static linearRgbMeetsContrastRatio(first: LinearRgb, second: LinearRgb, ratio: number): boolean {
+        return this.linearRgbContrastRatio(first, second) >= ratio;
     }
 }
