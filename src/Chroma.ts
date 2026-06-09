@@ -83,4 +83,8 @@ export class Chroma {
     public static linearRgbMeetsContrastRatio(first: LinearRgb, second: LinearRgb, ratio: number): boolean {
         return this.linearRgbContrastRatio(first, second) >= ratio;
     }
+
+    public static srgbMeetsContrastRatio(first: Srgb, second: Srgb, ratio: number): boolean {
+        return this.linearRgbMeetsContrastRatio(this.srgbToLinearRgb(first), this.srgbToLinearRgb(second), ratio);
+    }
 }
