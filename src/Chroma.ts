@@ -11,6 +11,11 @@ export type LinearRgb = {
 };
 
 export class Chroma {
+    public static readonly WCAG_AA_LARGE = 3;
+    public static readonly WCAG_AA_NORMAL = 4.5;
+    public static readonly WCAG_AAA_LARGE = 4.5;
+    public static readonly WCAG_AAA_NORMAL = 7;
+
     public static randomInt(min: number, max: number): number {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
