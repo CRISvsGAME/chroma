@@ -96,4 +96,8 @@ export class Chroma {
     public static lighterRelativeLuminanceForContrastRatio(luminance: number, ratio: number): number {
         return ratio * (luminance + 0.05) - 0.05;
     }
+
+    public static darkerRelativeLuminanceForContrastRatio(luminance: number, ratio: number): number {
+        return (luminance + 0.05) / ratio - 0.05;
+    }
 }
