@@ -92,4 +92,8 @@ export class Chroma {
     public static srgbMeetsContrastRatio(first: Srgb, second: Srgb, ratio: number): boolean {
         return this.linearRgbMeetsContrastRatio(this.srgbToLinearRgb(first), this.srgbToLinearRgb(second), ratio);
     }
+
+    public static lighterRelativeLuminanceForContrastRatio(luminance: number, ratio: number): number {
+        return ratio * (luminance + 0.05) - 0.05;
+    }
 }
