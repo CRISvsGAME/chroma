@@ -10,6 +10,16 @@ export type LinearRgb = {
     b: number;
 };
 
+export type LuminanceRange = {
+    min: number;
+    max: number;
+} | null;
+
+export type LuminanceRanges = {
+    lighter: LuminanceRange;
+    darker: LuminanceRange;
+};
+
 export class Chroma {
     public static readonly WCAG_AA_LARGE = 3;
     public static readonly WCAG_AA_NORMAL = 4.5;
@@ -99,5 +109,15 @@ export class Chroma {
 
     public static darkerRelativeLuminanceForContrastRatio(luminance: number, ratio: number): number {
         return (luminance + 0.05) / ratio - 0.05;
+    }
+
+    public static luminanceRangesForContrastRatio(luminance: number, ratio: number): LuminanceRanges {
+        const lighterMin = this.lighterRelativeLuminanceForContrastRatio(luminance, ratio);
+        const darkerMax = this.darkerRelativeLuminanceForContrastRatio(luminance, ratio);
+
+        return {
+            lighter: lighterMin <= 1 ? { min: lighterMin, max: 1 } : null,
+            darker: darkerMax >= 0 ? { min: 0, max: darkerMax } : null,
+        };
     }
 }
