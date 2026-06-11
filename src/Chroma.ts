@@ -120,4 +120,32 @@ export class Chroma {
             darker: darkerMax >= 0 ? { min: 0, max: darkerMax } : null,
         };
     }
+
+    public static linearRgbWithRelativeLuminance(linearRgb: LinearRgb, luminance: number): LinearRgb {
+        const currentLuminance = this.linearRgbRelativeLuminance(linearRgb);
+
+        if (currentLuminance === luminance) {
+            return linearRgb;
+        }
+
+        const { r, g, b } = linearRgb;
+
+        if (luminance < currentLuminance) {
+            const scale = luminance / currentLuminance;
+
+            return {
+                r: r * scale,
+                g: g * scale,
+                b: b * scale,
+            };
+        }
+
+        const scale = (luminance - currentLuminance) / (1 - currentLuminance);
+
+        return {
+            r: r + (1 - r) * scale,
+            g: g + (1 - g) * scale,
+            b: b + (1 - b) * scale,
+        };
+    }
 }
