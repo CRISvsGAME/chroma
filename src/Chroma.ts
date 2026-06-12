@@ -84,6 +84,22 @@ export class Chroma {
         };
     }
 
+    public static linearRgbToSrgbFloor({ r, g, b }: LinearRgb): Srgb {
+        return {
+            r: this.linearRgbChannelToSrgbChannelFloor(r),
+            g: this.linearRgbChannelToSrgbChannelFloor(g),
+            b: this.linearRgbChannelToSrgbChannelFloor(b),
+        };
+    }
+
+    public static linearRgbToSrgbCeil({ r, g, b }: LinearRgb): Srgb {
+        return {
+            r: this.linearRgbChannelToSrgbChannelCeil(r),
+            g: this.linearRgbChannelToSrgbChannelCeil(g),
+            b: this.linearRgbChannelToSrgbChannelCeil(b),
+        };
+    }
+
     public static linearRgbRelativeLuminance({ r, g, b }: LinearRgb): number {
         return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     }
