@@ -52,10 +52,20 @@ export class Chroma {
         return n <= 0.04045 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4);
     }
 
-    public static linearRgbChannelToSrgbChannel(channel: number): number {
-        const n = channel <= 0.0031308 ? channel * 12.92 : 1.055 * Math.pow(channel, 1 / 2.4) - 0.055;
+    private static linearRgbChannelToEncodedSrgbChannel(channel: number): number {
+        return channel <= 0.0031308 ? channel * 12.92 : 1.055 * Math.pow(channel, 1 / 2.4) - 0.055;
+    }
 
-        return Math.round(n * 255);
+    public static linearRgbChannelToSrgbChannel(channel: number): number {
+        return Math.round(this.linearRgbChannelToEncodedSrgbChannel(channel) * 255);
+    }
+
+    public static linearRgbChannelToSrgbChannelFloor(channel: number): number {
+        return Math.floor(this.linearRgbChannelToEncodedSrgbChannel(channel) * 255);
+    }
+
+    public static linearRgbChannelToSrgbChannelCeil(channel: number): number {
+        return Math.ceil(this.linearRgbChannelToEncodedSrgbChannel(channel) * 255);
     }
 
     public static srgbToLinearRgb({ r, g, b }: Srgb): LinearRgb {
