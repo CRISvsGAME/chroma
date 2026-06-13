@@ -189,4 +189,39 @@ export class Chroma {
 
         return srgb;
     }
+
+    public static linearRgbWithContrastRatio(base: LinearRgb, color: LinearRgb, ratio: number): LinearRgb {
+        const baseLuminance = this.linearRgbRelativeLuminance(base);
+        const colorLuminance = this.linearRgbRelativeLuminance(color);
+        const { lighter, darker } = this.luminanceRangesForContrastRatio(baseLuminance, ratio);
+
+        if (lighter && colorLuminance >= lighter.min) {
+            return color;
+        }
+
+        if (darker && colorLuminance <= darker.max) {
+            return color;
+        }
+
+        if (lighter && darker) {
+            const lighterDistance = Math.abs(colorLuminance - lighter.min);
+            const darkerDistance = Math.abs(colorLuminance - darker.max);
+
+            if (lighterDistance <= darkerDistance) {
+                return this.linearRgbWithRelativeLuminance(color, lighter.min);
+            }
+
+            return this.linearRgbWithRelativeLuminance(color, darker.max);
+        }
+
+        if (lighter) {
+            return this.linearRgbWithRelativeLuminance(color, lighter.min);
+        }
+
+        if (darker) {
+            return this.linearRgbWithRelativeLuminance(color, darker.max);
+        }
+
+        return color;
+    }
 }
