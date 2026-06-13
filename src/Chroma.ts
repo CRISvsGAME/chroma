@@ -149,11 +149,6 @@ export class Chroma {
 
     public static linearRgbWithRelativeLuminance(linearRgb: LinearRgb, luminance: number): LinearRgb {
         const currentLuminance = this.linearRgbRelativeLuminance(linearRgb);
-
-        if (currentLuminance === luminance) {
-            return linearRgb;
-        }
-
         const { r, g, b } = linearRgb;
 
         if (luminance < currentLuminance) {
@@ -166,12 +161,32 @@ export class Chroma {
             };
         }
 
-        const scale = (luminance - currentLuminance) / (1 - currentLuminance);
+        if (luminance > currentLuminance) {
+            const scale = (luminance - currentLuminance) / (1 - currentLuminance);
 
-        return {
-            r: r + (1 - r) * scale,
-            g: g + (1 - g) * scale,
-            b: b + (1 - b) * scale,
-        };
+            return {
+                r: r + (1 - r) * scale,
+                g: g + (1 - g) * scale,
+                b: b + (1 - b) * scale,
+            };
+        }
+
+        return linearRgb;
+    }
+
+    public static srgbWithRelativeLuminance(srgb: Srgb, luminance: number): Srgb {
+        const linearRgb = this.srgbToLinearRgb(srgb);
+        const currentLuminance = this.linearRgbRelativeLuminance(linearRgb);
+        const adjustedLinearRgb = this.linearRgbWithRelativeLuminance(linearRgb, luminance);
+
+        if (luminance < currentLuminance) {
+            return this.linearRgbToSrgbFloor(adjustedLinearRgb);
+        }
+
+        if (luminance > currentLuminance) {
+            return this.linearRgbToSrgbCeil(adjustedLinearRgb);
+        }
+
+        return srgb;
     }
 }
