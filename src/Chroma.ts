@@ -248,4 +248,8 @@ export class Chroma {
             direction: "none",
         };
     }
+
+    public static linearRgbWithContrastRatio(base: LinearRgb, color: LinearRgb, ratio: number): LinearRgb {
+        return this.linearRgbContrastAdjustment(base, color, ratio).linearRgb;
+    }
 }
