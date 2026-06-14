@@ -20,6 +20,13 @@ export type LuminanceRanges = {
     darker: LuminanceRange;
 };
 
+export type LuminanceAdjustmentDirection = "lighter" | "darker" | "none";
+
+export type LinearRgbLuminanceAdjustment = {
+    linearRgb: LinearRgb;
+    direction: LuminanceAdjustmentDirection;
+};
+
 export class Chroma {
     public static readonly WCAG_AA_LARGE = 3;
     public static readonly WCAG_AA_NORMAL = 4.5;
@@ -147,7 +154,7 @@ export class Chroma {
         };
     }
 
-    public static linearRgbWithRelativeLuminance(linearRgb: LinearRgb, luminance: number): LinearRgb {
+    public static linearRgbWithRelativeLuminance(linearRgb: LinearRgb, luminance: number): LinearRgbLuminanceAdjustment {
         const currentLuminance = this.linearRgbRelativeLuminance(linearRgb);
         const { r, g, b } = linearRgb;
 
@@ -155,9 +162,12 @@ export class Chroma {
             const scale = luminance / currentLuminance;
 
             return {
-                r: r * scale,
-                g: g * scale,
-                b: b * scale,
+                linearRgb: {
+                    r: r * scale,
+                    g: g * scale,
+                    b: b * scale,
+                },
+                direction: "darker",
             };
         }
 
@@ -165,42 +175,53 @@ export class Chroma {
             const scale = (luminance - currentLuminance) / (1 - currentLuminance);
 
             return {
-                r: r + (1 - r) * scale,
-                g: g + (1 - g) * scale,
-                b: b + (1 - b) * scale,
+                linearRgb: {
+                    r: r + (1 - r) * scale,
+                    g: g + (1 - g) * scale,
+                    b: b + (1 - b) * scale,
+                },
+                direction: "lighter",
             };
         }
 
-        return linearRgb;
+        return {
+            linearRgb,
+            direction: "none",
+        };
     }
 
     public static srgbWithRelativeLuminance(srgb: Srgb, luminance: number): Srgb {
         const linearRgb = this.srgbToLinearRgb(srgb);
-        const currentLuminance = this.linearRgbRelativeLuminance(linearRgb);
         const adjustedLinearRgb = this.linearRgbWithRelativeLuminance(linearRgb, luminance);
 
-        if (luminance < currentLuminance) {
-            return this.linearRgbToSrgbFloor(adjustedLinearRgb);
+        if (adjustedLinearRgb.direction === "darker") {
+            return this.linearRgbToSrgbFloor(adjustedLinearRgb.linearRgb);
         }
 
-        if (luminance > currentLuminance) {
-            return this.linearRgbToSrgbCeil(adjustedLinearRgb);
+        if (adjustedLinearRgb.direction === "lighter") {
+            return this.linearRgbToSrgbCeil(adjustedLinearRgb.linearRgb);
         }
 
         return srgb;
     }
 
-    public static linearRgbWithContrastRatio(base: LinearRgb, color: LinearRgb, ratio: number): LinearRgb {
+    public static linearRgbContrastAdjustment(base: LinearRgb, color: LinearRgb, ratio: number): LinearRgbLuminanceAdjustment {
         const baseLuminance = this.linearRgbRelativeLuminance(base);
         const colorLuminance = this.linearRgbRelativeLuminance(color);
         const { lighter, darker } = this.luminanceRangesForContrastRatio(baseLuminance, ratio);
 
         if (lighter && colorLuminance >= lighter.min) {
-            return color;
+            return {
+                linearRgb: color,
+                direction: "none",
+            };
         }
 
         if (darker && colorLuminance <= darker.max) {
-            return color;
+            return {
+                linearRgb: color,
+                direction: "none",
+            };
         }
 
         if (lighter && darker) {
@@ -222,6 +243,9 @@ export class Chroma {
             return this.linearRgbWithRelativeLuminance(color, darker.max);
         }
 
-        return color;
+        return {
+            linearRgb: color,
+            direction: "none",
+        };
     }
 }
