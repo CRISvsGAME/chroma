@@ -67,6 +67,31 @@ export class Chroma {
         };
     }
 
+    private static getRandomFloatRange(min: number, max: number): { min: number; max: number; size: number } {
+        this.validateFiniteNumber(min, "min");
+        this.validateFiniteNumber(max, "max");
+
+        if (min >= max) {
+            throw new RangeError("The random float range must have 'max' greater than 'min'.");
+        }
+
+        const rangeSize = max - min;
+
+        if (!Number.isFinite(rangeSize)) {
+            throw new RangeError("The random float range size must be a finite number.");
+        }
+
+        if (rangeSize <= 0) {
+            throw new RangeError("The random float range size must be greater than zero.");
+        }
+
+        return {
+            min,
+            max,
+            size: rangeSize,
+        };
+    }
+
     public static randomInt(min: number, max: number): number {
         const range = this.getRandomIntRange(min, max);
 
@@ -74,7 +99,9 @@ export class Chroma {
     }
 
     public static randomFloat(min: number, max: number): number {
-        return Math.random() * (max - min) + min;
+        const range = this.getRandomFloatRange(min, max);
+
+        return Math.random() * range.size + range.min;
     }
 
     public static randomSrgb(): Srgb {
