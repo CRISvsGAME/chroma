@@ -33,8 +33,44 @@ export class Chroma {
     public static readonly WCAG_AAA_LARGE = 4.5;
     public static readonly WCAG_AAA_NORMAL = 7;
 
+    private static validateFiniteNumber(value: number, name: string): void {
+        if (!Number.isFinite(value)) {
+            throw new TypeError(`The '${name}' must be a finite number.`);
+        }
+    }
+
+    private static getRandomIntRange(min: number, max: number): { min: number; max: number; size: number } {
+        this.validateFiniteNumber(min, "min");
+        this.validateFiniteNumber(max, "max");
+
+        const normalizedMin = Math.ceil(min);
+        const normalizedMax = Math.floor(max);
+
+        if (normalizedMin > normalizedMax) {
+            throw new RangeError("The random integer range must contain at least one integer.");
+        }
+
+        if (!Number.isSafeInteger(normalizedMin) || !Number.isSafeInteger(normalizedMax)) {
+            throw new RangeError("The random integer range bounds must be safe integers.");
+        }
+
+        const rangeSize = normalizedMax - normalizedMin + 1;
+
+        if (!Number.isSafeInteger(rangeSize)) {
+            throw new RangeError("The random integer range size must be a safe integer.");
+        }
+
+        return {
+            min: normalizedMin,
+            max: normalizedMax,
+            size: rangeSize,
+        };
+    }
+
     public static randomInt(min: number, max: number): number {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+        const range = this.getRandomIntRange(min, max);
+
+        return Math.floor(Math.random() * range.size) + range.min;
     }
 
     public static randomFloat(min: number, max: number): number {
