@@ -1,3 +1,9 @@
+export type Rgb = {
+    r: number;
+    g: number;
+    b: number;
+};
+
 export type Srgb = {
     r: number;
     g: number;
@@ -104,7 +110,7 @@ export class Chroma {
         return Math.random() * range.size + range.min;
     }
 
-    public static randomSrgb(): Srgb {
+    public static randomRgb(): Rgb {
         return {
             r: this.randomInt(0, 255),
             g: this.randomInt(0, 255),
