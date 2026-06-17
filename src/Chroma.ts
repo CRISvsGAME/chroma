@@ -4,9 +4,10 @@ export type Rgb = {
     b: number;
 };
 
+export type ContrastDirection = "lighter" | "darker" | "nearest";
+
 type NumberRange = {
     min: number;
-    max: number;
     size: number;
 };
 
@@ -14,6 +15,23 @@ type LinearRgb = {
     r: number;
     g: number;
     b: number;
+};
+
+type LuminanceRange = {
+    min: number;
+    max: number;
+} | null;
+
+type LuminanceRanges = {
+    lighter: LuminanceRange;
+    darker: LuminanceRange;
+};
+
+type ContrastSide = "lighter" | "darker";
+
+type LinearRgbContrastAdjustment = {
+    linearRgb: LinearRgb;
+    side: ContrastSide;
 };
 
 export class Chroma {
@@ -51,7 +69,6 @@ export class Chroma {
 
         return {
             min: normalizedMin,
-            max: normalizedMax,
             size: rangeSize,
         };
     }
@@ -76,7 +93,6 @@ export class Chroma {
 
         return {
             min,
-            max,
             size: rangeSize,
         };
     }
@@ -132,6 +148,146 @@ export class Chroma {
         }
     }
 
+    private static validateContrastDirection(direction: ContrastDirection): void {
+        if (direction !== "lighter" && direction !== "darker" && direction !== "nearest") {
+            throw new TypeError("The 'direction' must be 'lighter', 'darker', or 'nearest'.");
+        }
+    }
+
+    private static lighterRelativeLuminanceForContrastRatio(luminance: number, ratio: number): number {
+        return ratio * (luminance + 0.05) - 0.05;
+    }
+
+    private static darkerRelativeLuminanceForContrastRatio(luminance: number, ratio: number): number {
+        return (luminance + 0.05) / ratio - 0.05;
+    }
+
+    private static luminanceRangesForContrastRatio(luminance: number, ratio: number): LuminanceRanges {
+        const lighterMin = this.lighterRelativeLuminanceForContrastRatio(luminance, ratio);
+        const darkerMax = this.darkerRelativeLuminanceForContrastRatio(luminance, ratio);
+
+        return {
+            lighter: lighterMin <= 1 ? { min: lighterMin, max: 1 } : null,
+            darker: darkerMax >= 0 ? { min: 0, max: darkerMax } : null,
+        };
+    }
+
+    private static linearRgbWithRelativeLuminance(linearRgb: LinearRgb, luminance: number): LinearRgb {
+        const currentLuminance = this.linearRgbRelativeLuminance(linearRgb);
+        const { r, g, b } = linearRgb;
+
+        if (luminance < currentLuminance) {
+            const scale = luminance / currentLuminance;
+
+            return {
+                r: r * scale,
+                g: g * scale,
+                b: b * scale,
+            };
+        }
+
+        if (luminance > currentLuminance) {
+            const scale = (luminance - currentLuminance) / (1 - currentLuminance);
+
+            return {
+                r: r + (1 - r) * scale,
+                g: g + (1 - g) * scale,
+                b: b + (1 - b) * scale,
+            };
+        }
+
+        return linearRgb;
+    }
+
+    private static linearRgbContrastAdjustment(base: LinearRgb, color: LinearRgb, ratio: number, direction: ContrastDirection): LinearRgbContrastAdjustment {
+        const baseLuminance = this.linearRgbRelativeLuminance(base);
+        const colorLuminance = this.linearRgbRelativeLuminance(color);
+        const { lighter, darker } = this.luminanceRangesForContrastRatio(baseLuminance, ratio);
+
+        if (direction === "lighter") {
+            if (!lighter) {
+                throw new RangeError("Cannot adjust to a lighter color that meets the contrast ratio.");
+            }
+
+            return {
+                linearRgb: this.linearRgbWithRelativeLuminance(color, lighter.min),
+                side: "lighter",
+            };
+        }
+
+        if (direction === "darker") {
+            if (!darker) {
+                throw new RangeError("Cannot adjust to a darker color that meets the contrast ratio.");
+            }
+
+            return {
+                linearRgb: this.linearRgbWithRelativeLuminance(color, darker.max),
+                side: "darker",
+            };
+        }
+
+        if (lighter && darker) {
+            const lighterDistance = Math.abs(colorLuminance - lighter.min);
+            const darkerDistance = Math.abs(colorLuminance - darker.max);
+
+            if (lighterDistance <= darkerDistance) {
+                return {
+                    linearRgb: this.linearRgbWithRelativeLuminance(color, lighter.min),
+                    side: "lighter",
+                };
+            }
+
+            return {
+                linearRgb: this.linearRgbWithRelativeLuminance(color, darker.max),
+                side: "darker",
+            };
+        }
+
+        if (lighter) {
+            return {
+                linearRgb: this.linearRgbWithRelativeLuminance(color, lighter.min),
+                side: "lighter",
+            };
+        }
+
+        if (darker) {
+            return {
+                linearRgb: this.linearRgbWithRelativeLuminance(color, darker.max),
+                side: "darker",
+            };
+        }
+
+        throw new RangeError("Cannot adjust to a color that meets the contrast ratio.");
+    }
+
+    private static linearChannelToEncodedRgbChannel(channel: number): number {
+        return channel <= 0.0031308 ? channel * 12.92 : 1.055 * Math.pow(channel, 1 / 2.4) - 0.055;
+    }
+
+    private static linearChannelToRgbChannelFloor(channel: number): number {
+        return Math.floor(this.linearChannelToEncodedRgbChannel(channel) * 255);
+    }
+
+    private static linearChannelToRgbChannelCeil(channel: number): number {
+        return Math.ceil(this.linearChannelToEncodedRgbChannel(channel) * 255);
+    }
+
+    private static linearRgbToRgbFloor({ r, g, b }: LinearRgb): Rgb {
+        return {
+            r: this.linearChannelToRgbChannelFloor(r),
+            g: this.linearChannelToRgbChannelFloor(g),
+            b: this.linearChannelToRgbChannelFloor(b),
+        };
+    }
+
+    private static linearRgbToRgbCeil({ r, g, b }: LinearRgb): Rgb {
+        return {
+            r: this.linearChannelToRgbChannelCeil(r),
+            g: this.linearChannelToRgbChannelCeil(g),
+            b: this.linearChannelToRgbChannelCeil(b),
+        };
+    }
+
     public static randomInt(min: number, max: number): number {
         const range = this.getRandomIntRange(min, max);
 
@@ -171,5 +327,20 @@ export class Chroma {
         this.validateContrastRatio(ratio);
 
         return this.linearRgbContrastRatio(this.rgbToLinearRgb(first), this.rgbToLinearRgb(second)) >= ratio;
+    }
+
+    public static adjustToContrast(base: Rgb, color: Rgb, ratio: number, direction: ContrastDirection = "nearest"): Rgb {
+        this.validateRgb(base);
+        this.validateRgb(color);
+        this.validateContrastRatio(ratio);
+        this.validateContrastDirection(direction);
+
+        const adjustment = this.linearRgbContrastAdjustment(this.rgbToLinearRgb(base), this.rgbToLinearRgb(color), ratio, direction);
+
+        if (adjustment.side === "lighter") {
+            return this.linearRgbToRgbCeil(adjustment.linearRgb);
+        }
+
+        return this.linearRgbToRgbFloor(adjustment.linearRgb);
     }
 }
