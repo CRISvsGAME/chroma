@@ -124,6 +124,14 @@ export class Chroma {
         return (lighter + 0.05) / (darker + 0.05);
     }
 
+    private static validateContrastRatio(ratio: number): void {
+        this.validateFiniteNumber(ratio, "ratio");
+
+        if (ratio < 1 || ratio > 21) {
+            throw new RangeError("The 'ratio' must be between 1 and 21.");
+        }
+    }
+
     public static randomInt(min: number, max: number): number {
         const range = this.getRandomIntRange(min, max);
 
@@ -155,5 +163,13 @@ export class Chroma {
         this.validateRgb(second);
 
         return this.linearRgbContrastRatio(this.rgbToLinearRgb(first), this.rgbToLinearRgb(second));
+    }
+
+    public static meetsContrast(first: Rgb, second: Rgb, ratio: number): boolean {
+        this.validateRgb(first);
+        this.validateRgb(second);
+        this.validateContrastRatio(ratio);
+
+        return this.linearRgbContrastRatio(this.rgbToLinearRgb(first), this.rgbToLinearRgb(second)) >= ratio;
     }
 }
