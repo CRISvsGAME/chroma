@@ -4,6 +4,11 @@ export type Rgb = {
     b: number;
 };
 
+export type RgbPair = {
+    bg: Rgb;
+    fg: Rgb;
+};
+
 export type ContrastDirection = "lighter" | "darker" | "nearest";
 
 type NumberRange = {
@@ -345,10 +350,15 @@ export class Chroma {
     }
 
     public static randomWithContrast(base: Rgb, ratio: number, direction: ContrastDirection = "nearest"): Rgb {
-        this.validateRgb(base);
-        this.validateContrastRatio(ratio);
-        this.validateContrastDirection(direction);
-
         return this.adjustToContrast(base, this.randomRgb(), ratio, direction);
+    }
+
+    public static randomPair(ratio: number): RgbPair {
+        this.validateContrastRatio(ratio);
+
+        const bg = this.randomRgb();
+        const fg = this.randomWithContrast(bg, ratio);
+
+        return { bg, fg };
     }
 }
