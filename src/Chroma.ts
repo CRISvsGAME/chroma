@@ -343,4 +343,12 @@ export class Chroma {
 
         return this.linearRgbToRgbFloor(adjustment.linearRgb);
     }
+
+    public static randomWithContrast(base: Rgb, ratio: number, direction: ContrastDirection = "nearest"): Rgb {
+        this.validateRgb(base);
+        this.validateContrastRatio(ratio);
+        this.validateContrastDirection(direction);
+
+        return this.adjustToContrast(base, this.randomRgb(), ratio, direction);
+    }
 }
