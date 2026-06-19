@@ -204,7 +204,7 @@ export class Chroma {
         return linearRgb;
     }
 
-    private static linearRgbContrastAdjustment(base: LinearRgb, color: LinearRgb, ratio: number, direction: ContrastDirection): LinearRgbContrastAdjustment {
+    private static linearRgbContrastAdjustment(base: LinearRgb, color: LinearRgb, ratio: number, direction: ContrastDirection, randomizeLuminance: boolean = false): LinearRgbContrastAdjustment {
         const baseLuminance = Chroma.linearRgbRelativeLuminance(base);
         const colorLuminance = Chroma.linearRgbRelativeLuminance(color);
         const { lighter, darker } = Chroma.luminanceRangesForContrastRatio(baseLuminance, ratio);
@@ -214,8 +214,14 @@ export class Chroma {
                 throw new RangeError("Cannot adjust to a lighter color that meets the contrast ratio.");
             }
 
+            let luminance = lighter.min;
+
+            if (randomizeLuminance && lighter.min < lighter.max) {
+                luminance = Chroma.randomFloat(lighter.min, lighter.max);
+            }
+
             return {
-                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, lighter.min),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, luminance),
                 side: "lighter",
             };
         }
@@ -225,8 +231,14 @@ export class Chroma {
                 throw new RangeError("Cannot adjust to a darker color that meets the contrast ratio.");
             }
 
+            let luminance = darker.max;
+
+            if (randomizeLuminance && darker.min < darker.max) {
+                luminance = Chroma.randomFloat(darker.min, darker.max);
+            }
+
             return {
-                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, darker.max),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, luminance),
                 side: "darker",
             };
         }
@@ -236,28 +248,52 @@ export class Chroma {
             const darkerDistance = Math.abs(colorLuminance - darker.max);
 
             if (lighterDistance <= darkerDistance) {
+                let luminance = lighter.min;
+
+                if (randomizeLuminance && lighter.min < lighter.max) {
+                    luminance = Chroma.randomFloat(lighter.min, lighter.max);
+                }
+
                 return {
-                    linearRgb: Chroma.linearRgbWithRelativeLuminance(color, lighter.min),
+                    linearRgb: Chroma.linearRgbWithRelativeLuminance(color, luminance),
                     side: "lighter",
                 };
             }
 
+            let luminance = darker.max;
+
+            if (randomizeLuminance && darker.min < darker.max) {
+                luminance = Chroma.randomFloat(darker.min, darker.max);
+            }
+
             return {
-                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, darker.max),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, luminance),
                 side: "darker",
             };
         }
 
         if (lighter) {
+            let luminance = lighter.min;
+
+            if (randomizeLuminance && lighter.min < lighter.max) {
+                luminance = Chroma.randomFloat(lighter.min, lighter.max);
+            }
+
             return {
-                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, lighter.min),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, luminance),
                 side: "lighter",
             };
         }
 
         if (darker) {
+            let luminance = darker.max;
+
+            if (randomizeLuminance && darker.min < darker.max) {
+                luminance = Chroma.randomFloat(darker.min, darker.max);
+            }
+
             return {
-                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, darker.max),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, luminance),
                 side: "darker",
             };
         }
@@ -326,7 +362,7 @@ export class Chroma {
         return Chroma.linearRgbContrastRatio(Chroma.rgbToLinearRgb(first), Chroma.rgbToLinearRgb(second));
     }
 
-    public static meetsContrast(first: Rgb, second: Rgb, ratio: number): boolean {
+    public static meetsContrast(first: Rgb, second: Rgb, ratio: number = Chroma.WCAG_AA_NORMAL): boolean {
         Chroma.validateRgb(first);
         Chroma.validateRgb(second);
         Chroma.validateContrastRatio(ratio);
@@ -334,13 +370,13 @@ export class Chroma {
         return Chroma.linearRgbContrastRatio(Chroma.rgbToLinearRgb(first), Chroma.rgbToLinearRgb(second)) >= ratio;
     }
 
-    public static adjustToContrast(base: Rgb, color: Rgb, ratio: number, direction: ContrastDirection = "nearest"): Rgb {
+    public static adjustToContrast(base: Rgb, color: Rgb, ratio: number = Chroma.WCAG_AA_NORMAL, direction: ContrastDirection = "nearest", randomizeLuminance: boolean = false): Rgb {
         Chroma.validateRgb(base);
         Chroma.validateRgb(color);
         Chroma.validateContrastRatio(ratio);
         Chroma.validateContrastDirection(direction);
 
-        const adjustment = Chroma.linearRgbContrastAdjustment(Chroma.rgbToLinearRgb(base), Chroma.rgbToLinearRgb(color), ratio, direction);
+        const adjustment = Chroma.linearRgbContrastAdjustment(Chroma.rgbToLinearRgb(base), Chroma.rgbToLinearRgb(color), ratio, direction, randomizeLuminance);
 
         if (adjustment.side === "lighter") {
             return Chroma.linearRgbToRgbCeil(adjustment.linearRgb);
@@ -349,15 +385,13 @@ export class Chroma {
         return Chroma.linearRgbToRgbFloor(adjustment.linearRgb);
     }
 
-    public static randomWithContrast(base: Rgb, ratio: number, direction: ContrastDirection = "nearest"): Rgb {
-        return Chroma.adjustToContrast(base, Chroma.randomRgb(), ratio, direction);
+    public static randomWithContrast(base: Rgb, ratio: number = Chroma.WCAG_AA_NORMAL, direction: ContrastDirection = "nearest", randomizeLuminance: boolean = false): Rgb {
+        return Chroma.adjustToContrast(base, Chroma.randomRgb(), ratio, direction, randomizeLuminance);
     }
 
-    public static randomPair(ratio: number): RgbPair {
-        Chroma.validateContrastRatio(ratio);
-
+    public static randomPair(ratio: number = Chroma.WCAG_AA_NORMAL, randomizeLuminance: boolean = false): RgbPair {
         const bg = Chroma.randomRgb();
-        const fg = Chroma.randomWithContrast(bg, ratio);
+        const fg = Chroma.randomWithContrast(bg, ratio, "nearest", randomizeLuminance);
 
         return { bg, fg };
     }
