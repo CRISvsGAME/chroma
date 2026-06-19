@@ -52,8 +52,8 @@ export class Chroma {
     }
 
     private static getRandomIntRange(min: number, max: number): NumberRange {
-        this.validateFiniteNumber(min, "min");
-        this.validateFiniteNumber(max, "max");
+        Chroma.validateFiniteNumber(min, "min");
+        Chroma.validateFiniteNumber(max, "max");
 
         const normalizedMin = Math.ceil(min);
         const normalizedMax = Math.floor(max);
@@ -79,8 +79,8 @@ export class Chroma {
     }
 
     private static getRandomFloatRange(min: number, max: number): NumberRange {
-        this.validateFiniteNumber(min, "min");
-        this.validateFiniteNumber(max, "max");
+        Chroma.validateFiniteNumber(min, "min");
+        Chroma.validateFiniteNumber(max, "max");
 
         if (min >= max) {
             throw new RangeError("The random float range must have 'max' greater than 'min'.");
@@ -113,9 +113,9 @@ export class Chroma {
     }
 
     private static validateRgb({ r, g, b }: Rgb): void {
-        this.validateRgbChannel(r, "r");
-        this.validateRgbChannel(g, "g");
-        this.validateRgbChannel(b, "b");
+        Chroma.validateRgbChannel(r, "r");
+        Chroma.validateRgbChannel(g, "g");
+        Chroma.validateRgbChannel(b, "b");
     }
 
     private static rgbChannelToLinearChannel(channel: number): number {
@@ -126,9 +126,9 @@ export class Chroma {
 
     private static rgbToLinearRgb({ r, g, b }: Rgb): LinearRgb {
         return {
-            r: this.rgbChannelToLinearChannel(r),
-            g: this.rgbChannelToLinearChannel(g),
-            b: this.rgbChannelToLinearChannel(b),
+            r: Chroma.rgbChannelToLinearChannel(r),
+            g: Chroma.rgbChannelToLinearChannel(g),
+            b: Chroma.rgbChannelToLinearChannel(b),
         };
     }
 
@@ -137,8 +137,8 @@ export class Chroma {
     }
 
     private static linearRgbContrastRatio(first: LinearRgb, second: LinearRgb): number {
-        const firstLuminance = this.linearRgbRelativeLuminance(first);
-        const secondLuminance = this.linearRgbRelativeLuminance(second);
+        const firstLuminance = Chroma.linearRgbRelativeLuminance(first);
+        const secondLuminance = Chroma.linearRgbRelativeLuminance(second);
         const lighter = Math.max(firstLuminance, secondLuminance);
         const darker = Math.min(firstLuminance, secondLuminance);
 
@@ -146,7 +146,7 @@ export class Chroma {
     }
 
     private static validateContrastRatio(ratio: number): void {
-        this.validateFiniteNumber(ratio, "ratio");
+        Chroma.validateFiniteNumber(ratio, "ratio");
 
         if (ratio < 1 || ratio > 21) {
             throw new RangeError("The 'ratio' must be between 1 and 21.");
@@ -168,8 +168,8 @@ export class Chroma {
     }
 
     private static luminanceRangesForContrastRatio(luminance: number, ratio: number): LuminanceRanges {
-        const lighterMin = this.lighterRelativeLuminanceForContrastRatio(luminance, ratio);
-        const darkerMax = this.darkerRelativeLuminanceForContrastRatio(luminance, ratio);
+        const lighterMin = Chroma.lighterRelativeLuminanceForContrastRatio(luminance, ratio);
+        const darkerMax = Chroma.darkerRelativeLuminanceForContrastRatio(luminance, ratio);
 
         return {
             lighter: lighterMin <= 1 ? { min: lighterMin, max: 1 } : null,
@@ -178,7 +178,7 @@ export class Chroma {
     }
 
     private static linearRgbWithRelativeLuminance(linearRgb: LinearRgb, luminance: number): LinearRgb {
-        const currentLuminance = this.linearRgbRelativeLuminance(linearRgb);
+        const currentLuminance = Chroma.linearRgbRelativeLuminance(linearRgb);
         const { r, g, b } = linearRgb;
 
         if (luminance < currentLuminance) {
@@ -205,9 +205,9 @@ export class Chroma {
     }
 
     private static linearRgbContrastAdjustment(base: LinearRgb, color: LinearRgb, ratio: number, direction: ContrastDirection): LinearRgbContrastAdjustment {
-        const baseLuminance = this.linearRgbRelativeLuminance(base);
-        const colorLuminance = this.linearRgbRelativeLuminance(color);
-        const { lighter, darker } = this.luminanceRangesForContrastRatio(baseLuminance, ratio);
+        const baseLuminance = Chroma.linearRgbRelativeLuminance(base);
+        const colorLuminance = Chroma.linearRgbRelativeLuminance(color);
+        const { lighter, darker } = Chroma.luminanceRangesForContrastRatio(baseLuminance, ratio);
 
         if (direction === "lighter") {
             if (!lighter) {
@@ -215,7 +215,7 @@ export class Chroma {
             }
 
             return {
-                linearRgb: this.linearRgbWithRelativeLuminance(color, lighter.min),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, lighter.min),
                 side: "lighter",
             };
         }
@@ -226,7 +226,7 @@ export class Chroma {
             }
 
             return {
-                linearRgb: this.linearRgbWithRelativeLuminance(color, darker.max),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, darker.max),
                 side: "darker",
             };
         }
@@ -237,27 +237,27 @@ export class Chroma {
 
             if (lighterDistance <= darkerDistance) {
                 return {
-                    linearRgb: this.linearRgbWithRelativeLuminance(color, lighter.min),
+                    linearRgb: Chroma.linearRgbWithRelativeLuminance(color, lighter.min),
                     side: "lighter",
                 };
             }
 
             return {
-                linearRgb: this.linearRgbWithRelativeLuminance(color, darker.max),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, darker.max),
                 side: "darker",
             };
         }
 
         if (lighter) {
             return {
-                linearRgb: this.linearRgbWithRelativeLuminance(color, lighter.min),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, lighter.min),
                 side: "lighter",
             };
         }
 
         if (darker) {
             return {
-                linearRgb: this.linearRgbWithRelativeLuminance(color, darker.max),
+                linearRgb: Chroma.linearRgbWithRelativeLuminance(color, darker.max),
                 side: "darker",
             };
         }
@@ -270,94 +270,94 @@ export class Chroma {
     }
 
     private static linearChannelToRgbChannelFloor(channel: number): number {
-        return Math.floor(this.linearChannelToEncodedRgbChannel(channel) * 255);
+        return Math.floor(Chroma.linearChannelToEncodedRgbChannel(channel) * 255);
     }
 
     private static linearChannelToRgbChannelCeil(channel: number): number {
-        return Math.ceil(this.linearChannelToEncodedRgbChannel(channel) * 255);
+        return Math.ceil(Chroma.linearChannelToEncodedRgbChannel(channel) * 255);
     }
 
     private static linearRgbToRgbFloor({ r, g, b }: LinearRgb): Rgb {
         return {
-            r: this.linearChannelToRgbChannelFloor(r),
-            g: this.linearChannelToRgbChannelFloor(g),
-            b: this.linearChannelToRgbChannelFloor(b),
+            r: Chroma.linearChannelToRgbChannelFloor(r),
+            g: Chroma.linearChannelToRgbChannelFloor(g),
+            b: Chroma.linearChannelToRgbChannelFloor(b),
         };
     }
 
     private static linearRgbToRgbCeil({ r, g, b }: LinearRgb): Rgb {
         return {
-            r: this.linearChannelToRgbChannelCeil(r),
-            g: this.linearChannelToRgbChannelCeil(g),
-            b: this.linearChannelToRgbChannelCeil(b),
+            r: Chroma.linearChannelToRgbChannelCeil(r),
+            g: Chroma.linearChannelToRgbChannelCeil(g),
+            b: Chroma.linearChannelToRgbChannelCeil(b),
         };
     }
 
     public static randomInt(min: number, max: number): number {
-        const range = this.getRandomIntRange(min, max);
+        const range = Chroma.getRandomIntRange(min, max);
 
         return Math.floor(Math.random() * range.size) + range.min;
     }
 
     public static randomFloat(min: number, max: number): number {
-        const range = this.getRandomFloatRange(min, max);
+        const range = Chroma.getRandomFloatRange(min, max);
 
         return Math.random() * range.size + range.min;
     }
 
     public static randomRgb(): Rgb {
         return {
-            r: this.randomInt(0, 255),
-            g: this.randomInt(0, 255),
-            b: this.randomInt(0, 255),
+            r: Chroma.randomInt(0, 255),
+            g: Chroma.randomInt(0, 255),
+            b: Chroma.randomInt(0, 255),
         };
     }
 
     public static rgbToCss(rgb: Rgb): string {
-        this.validateRgb(rgb);
+        Chroma.validateRgb(rgb);
 
         return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
     }
 
     public static contrast(first: Rgb, second: Rgb): number {
-        this.validateRgb(first);
-        this.validateRgb(second);
+        Chroma.validateRgb(first);
+        Chroma.validateRgb(second);
 
-        return this.linearRgbContrastRatio(this.rgbToLinearRgb(first), this.rgbToLinearRgb(second));
+        return Chroma.linearRgbContrastRatio(Chroma.rgbToLinearRgb(first), Chroma.rgbToLinearRgb(second));
     }
 
     public static meetsContrast(first: Rgb, second: Rgb, ratio: number): boolean {
-        this.validateRgb(first);
-        this.validateRgb(second);
-        this.validateContrastRatio(ratio);
+        Chroma.validateRgb(first);
+        Chroma.validateRgb(second);
+        Chroma.validateContrastRatio(ratio);
 
-        return this.linearRgbContrastRatio(this.rgbToLinearRgb(first), this.rgbToLinearRgb(second)) >= ratio;
+        return Chroma.linearRgbContrastRatio(Chroma.rgbToLinearRgb(first), Chroma.rgbToLinearRgb(second)) >= ratio;
     }
 
     public static adjustToContrast(base: Rgb, color: Rgb, ratio: number, direction: ContrastDirection = "nearest"): Rgb {
-        this.validateRgb(base);
-        this.validateRgb(color);
-        this.validateContrastRatio(ratio);
-        this.validateContrastDirection(direction);
+        Chroma.validateRgb(base);
+        Chroma.validateRgb(color);
+        Chroma.validateContrastRatio(ratio);
+        Chroma.validateContrastDirection(direction);
 
-        const adjustment = this.linearRgbContrastAdjustment(this.rgbToLinearRgb(base), this.rgbToLinearRgb(color), ratio, direction);
+        const adjustment = Chroma.linearRgbContrastAdjustment(Chroma.rgbToLinearRgb(base), Chroma.rgbToLinearRgb(color), ratio, direction);
 
         if (adjustment.side === "lighter") {
-            return this.linearRgbToRgbCeil(adjustment.linearRgb);
+            return Chroma.linearRgbToRgbCeil(adjustment.linearRgb);
         }
 
-        return this.linearRgbToRgbFloor(adjustment.linearRgb);
+        return Chroma.linearRgbToRgbFloor(adjustment.linearRgb);
     }
 
     public static randomWithContrast(base: Rgb, ratio: number, direction: ContrastDirection = "nearest"): Rgb {
-        return this.adjustToContrast(base, this.randomRgb(), ratio, direction);
+        return Chroma.adjustToContrast(base, Chroma.randomRgb(), ratio, direction);
     }
 
     public static randomPair(ratio: number): RgbPair {
-        this.validateContrastRatio(ratio);
+        Chroma.validateContrastRatio(ratio);
 
-        const bg = this.randomRgb();
-        const fg = this.randomWithContrast(bg, ratio);
+        const bg = Chroma.randomRgb();
+        const fg = Chroma.randomWithContrast(bg, ratio);
 
         return { bg, fg };
     }
