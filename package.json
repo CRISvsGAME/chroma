@@ -1,6 +1,6 @@
 {
     "name": "@crisvsgame/chroma",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "A lightweight colour utility library for sRGB conversion, luminance, contrast, and colour generation",
     "keywords": [
         "chroma",
@@ -36,6 +36,10 @@
             "import": "./dist/index.js"
         }
     },
+    "files": [
+        "dist",
+        "LICENSE"
+    ],
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch"
