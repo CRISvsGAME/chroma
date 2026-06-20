@@ -11,6 +11,18 @@ export type RgbPair = {
 
 export type ContrastDirection = "lighter" | "darker" | "nearest";
 
+export type ContrastOptions = {
+    ratio?: number;
+    direction?: ContrastDirection;
+    flexible?: boolean;
+};
+
+type ResolvedContrastOptions = {
+    ratio: number;
+    direction: ContrastDirection;
+    flexible: boolean;
+};
+
 type NumberRange = {
     min: number;
     size: number;
@@ -37,6 +49,12 @@ type ContrastSide = "lighter" | "darker";
 type LinearRgbContrastAdjustment = {
     linearRgb: LinearRgb;
     side: ContrastSide;
+};
+
+const defaultContrastOptions: ResolvedContrastOptions = {
+    ratio: 4.5,
+    direction: "nearest",
+    flexible: false,
 };
 
 export class Chroma {
@@ -159,6 +177,12 @@ export class Chroma {
         }
     }
 
+    private static validateBoolean(value: boolean, name: string): void {
+        if (typeof value !== "boolean") {
+            throw new TypeError(`The '${name}' must be a boolean.`);
+        }
+    }
+
     private static lighterRelativeLuminanceForContrastRatio(luminance: number, ratio: number): number {
         return ratio * (luminance + 0.05) - 0.05;
     }
@@ -204,7 +228,8 @@ export class Chroma {
         return linearRgb;
     }
 
-    private static linearRgbContrastAdjustment(base: LinearRgb, color: LinearRgb, ratio: number, direction: ContrastDirection, randomizeLuminance: boolean = false): LinearRgbContrastAdjustment {
+    private static linearRgbContrastAdjustment(base: LinearRgb, color: LinearRgb, options: ResolvedContrastOptions): LinearRgbContrastAdjustment {
+        const { ratio, direction, flexible } = options;
         const baseLuminance = Chroma.linearRgbRelativeLuminance(base);
         const colorLuminance = Chroma.linearRgbRelativeLuminance(color);
         const { lighter, darker } = Chroma.luminanceRangesForContrastRatio(baseLuminance, ratio);
@@ -216,7 +241,7 @@ export class Chroma {
 
             let luminance = lighter.min;
 
-            if (randomizeLuminance && lighter.min < lighter.max) {
+            if (flexible && lighter.min < lighter.max) {
                 luminance = Chroma.randomFloat(lighter.min, lighter.max);
             }
 
@@ -233,7 +258,7 @@ export class Chroma {
 
             let luminance = darker.max;
 
-            if (randomizeLuminance && darker.min < darker.max) {
+            if (flexible && darker.min < darker.max) {
                 luminance = Chroma.randomFloat(darker.min, darker.max);
             }
 
@@ -250,7 +275,7 @@ export class Chroma {
             if (lighterDistance <= darkerDistance) {
                 let luminance = lighter.min;
 
-                if (randomizeLuminance && lighter.min < lighter.max) {
+                if (flexible && lighter.min < lighter.max) {
                     luminance = Chroma.randomFloat(lighter.min, lighter.max);
                 }
 
@@ -262,7 +287,7 @@ export class Chroma {
 
             let luminance = darker.max;
 
-            if (randomizeLuminance && darker.min < darker.max) {
+            if (flexible && darker.min < darker.max) {
                 luminance = Chroma.randomFloat(darker.min, darker.max);
             }
 
@@ -275,7 +300,7 @@ export class Chroma {
         if (lighter) {
             let luminance = lighter.min;
 
-            if (randomizeLuminance && lighter.min < lighter.max) {
+            if (flexible && lighter.min < lighter.max) {
                 luminance = Chroma.randomFloat(lighter.min, lighter.max);
             }
 
@@ -288,7 +313,7 @@ export class Chroma {
         if (darker) {
             let luminance = darker.max;
 
-            if (randomizeLuminance && darker.min < darker.max) {
+            if (flexible && darker.min < darker.max) {
                 luminance = Chroma.randomFloat(darker.min, darker.max);
             }
 
@@ -370,13 +395,16 @@ export class Chroma {
         return Chroma.linearRgbContrastRatio(Chroma.rgbToLinearRgb(first), Chroma.rgbToLinearRgb(second)) >= ratio;
     }
 
-    public static adjustToContrast(base: Rgb, color: Rgb, ratio: number = Chroma.WCAG_AA_NORMAL, direction: ContrastDirection = "nearest", randomizeLuminance: boolean = false): Rgb {
+    public static adjustToContrast(base: Rgb, color: Rgb, options: ContrastOptions = {}): Rgb {
+        const o = { ...defaultContrastOptions, ...options };
+
         Chroma.validateRgb(base);
         Chroma.validateRgb(color);
-        Chroma.validateContrastRatio(ratio);
-        Chroma.validateContrastDirection(direction);
+        Chroma.validateContrastRatio(o.ratio);
+        Chroma.validateContrastDirection(o.direction);
+        Chroma.validateBoolean(o.flexible, "flexible");
 
-        const adjustment = Chroma.linearRgbContrastAdjustment(Chroma.rgbToLinearRgb(base), Chroma.rgbToLinearRgb(color), ratio, direction, randomizeLuminance);
+        const adjustment = Chroma.linearRgbContrastAdjustment(Chroma.rgbToLinearRgb(base), Chroma.rgbToLinearRgb(color), o);
 
         if (adjustment.side === "lighter") {
             return Chroma.linearRgbToRgbCeil(adjustment.linearRgb);
@@ -385,13 +413,19 @@ export class Chroma {
         return Chroma.linearRgbToRgbFloor(adjustment.linearRgb);
     }
 
-    public static randomWithContrast(base: Rgb, ratio: number = Chroma.WCAG_AA_NORMAL, direction: ContrastDirection = "nearest", randomizeLuminance: boolean = false): Rgb {
-        return Chroma.adjustToContrast(base, Chroma.randomRgb(), ratio, direction, randomizeLuminance);
+    public static randomWithContrast(base: Rgb, options: ContrastOptions = {}): Rgb {
+        return Chroma.adjustToContrast(base, Chroma.randomRgb(), options);
     }
 
-    public static randomPair(ratio: number = Chroma.WCAG_AA_NORMAL, randomizeLuminance: boolean = false): RgbPair {
+    public static randomPair(): RgbPair {
+        const options: ContrastOptions = {
+            ratio: Chroma.WCAG_AA_NORMAL,
+            direction: "nearest",
+            flexible: true,
+        };
+
         const bg = Chroma.randomRgb();
-        const fg = Chroma.randomWithContrast(bg, ratio, "nearest", randomizeLuminance);
+        const fg = Chroma.randomWithContrast(bg, options);
 
         return { bg, fg };
     }
