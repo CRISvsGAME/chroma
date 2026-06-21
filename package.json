@@ -42,9 +42,11 @@
     ],
     "scripts": {
         "build": "tsc",
-        "dev": "tsc --watch"
+        "dev": "tsc --watch",
+        "test": "vitest run"
     },
     "devDependencies": {
-        "typescript": "^6.0.3"
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.9"
     }
 }
