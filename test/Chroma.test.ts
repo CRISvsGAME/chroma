@@ -121,3 +121,34 @@ describe("Chroma.randomFloat", () => {
         expect(() => Chroma.randomFloat(20, 10)).toThrow();
     });
 });
+
+describe("Chroma.randomRgb", () => {
+    it("returns an RGB object with r, g, and b channels", () => {
+        vi.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValueOnce(0.5).mockReturnValueOnce(0.9999999999999999);
+
+        expect(Chroma.randomRgb()).toEqual({
+            r: 0,
+            g: 128,
+            b: 255,
+        });
+    });
+
+    it("returns integer channels inside the RGB range", () => {
+        for (let i = 0; i < 1000; i++) {
+            const rgb = Chroma.randomRgb();
+
+            expect(Number.isInteger(rgb.r)).toBe(true);
+            expect(Number.isInteger(rgb.g)).toBe(true);
+            expect(Number.isInteger(rgb.b)).toBe(true);
+
+            expect(rgb.r).toBeGreaterThanOrEqual(0);
+            expect(rgb.r).toBeLessThanOrEqual(255);
+
+            expect(rgb.g).toBeGreaterThanOrEqual(0);
+            expect(rgb.g).toBeLessThanOrEqual(255);
+
+            expect(rgb.b).toBeGreaterThanOrEqual(0);
+            expect(rgb.b).toBeLessThanOrEqual(255);
+        }
+    });
+});
