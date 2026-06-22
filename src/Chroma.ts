@@ -120,6 +120,41 @@ export class Chroma {
         };
     }
 
+    private static nextDown(value: number): number {
+        if (Number.isNaN(value)) {
+            return Number.NaN;
+        }
+
+        if (value === Number.NEGATIVE_INFINITY) {
+            return Number.NEGATIVE_INFINITY;
+        }
+
+        if (value === Number.POSITIVE_INFINITY) {
+            return Number.MAX_VALUE;
+        }
+
+        if (value === 0) {
+            return -Number.MIN_VALUE;
+        }
+
+        const buffer = new ArrayBuffer(8);
+        const view = new DataView(buffer);
+
+        view.setFloat64(0, value);
+
+        let bits = view.getBigUint64(0);
+
+        if (value > 0) {
+            bits -= 1n;
+        } else {
+            bits += 1n;
+        }
+
+        view.setBigUint64(0, bits);
+
+        return view.getFloat64(0);
+    }
+
     private static validateRgbChannel(channel: number, name: string): void {
         if (!Number.isInteger(channel)) {
             throw new TypeError(`The '${name}' RGB channel must be an integer.`);
@@ -362,8 +397,9 @@ export class Chroma {
 
     public static randomFloat(min: number, max: number): number {
         const range = Chroma.getRandomFloatRange(min, max);
+        const value = Math.random() * range.size + range.min;
 
-        return Math.random() * range.size + range.min;
+        return value < max ? value : Chroma.nextDown(max);
     }
 
     public static randomRgb(): Rgb {

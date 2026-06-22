@@ -49,15 +49,75 @@ describe("Chroma.randomInt", () => {
     it("throws when min is not finite", () => {
         expect(() => Chroma.randomInt(Number.NaN, 20)).toThrow();
         expect(() => Chroma.randomInt(Number.POSITIVE_INFINITY, 20)).toThrow();
+        expect(() => Chroma.randomInt(Number.NEGATIVE_INFINITY, 20)).toThrow();
     });
 
     it("throws when max is not finite", () => {
         expect(() => Chroma.randomInt(10, Number.NaN)).toThrow();
         expect(() => Chroma.randomInt(10, Number.POSITIVE_INFINITY)).toThrow();
+        expect(() => Chroma.randomInt(10, Number.NEGATIVE_INFINITY)).toThrow();
     });
 
     it("throws when the integer range is empty", () => {
         expect(() => Chroma.randomInt(10.2, 10.8)).toThrow();
         expect(() => Chroma.randomInt(20, 10)).toThrow();
+    });
+});
+
+describe("Chroma.randomFloat", () => {
+    it("returns the minimum value when Math.random() returns 0", () => {
+        vi.spyOn(Math, "random").mockReturnValue(0);
+
+        expect(Chroma.randomFloat(10, 20)).toBe(10);
+    });
+
+    it("cannot return the maximum value", () => {
+        vi.spyOn(Math, "random").mockReturnValue(0.9999999999999999);
+
+        const value = Chroma.randomFloat(10, 20);
+
+        expect(value).toBeGreaterThanOrEqual(10);
+        expect(value).toBeLessThan(20);
+    });
+
+    it("supports negative ranges", () => {
+        vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+        expect(Chroma.randomFloat(-20, -10)).toBeCloseTo(-15);
+    });
+
+    it("supports decimal bounds", () => {
+        vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+        expect(Chroma.randomFloat(10.5, 20.5)).toBeCloseTo(15.5);
+    });
+
+    it("returns a number inside the half-open range", () => {
+        for (let i = 0; i < 1000; i++) {
+            const value = Chroma.randomFloat(-10, 20);
+
+            expect(value).toBeGreaterThanOrEqual(-10);
+            expect(value).toBeLessThan(20);
+        }
+    });
+
+    it("throws when min is not finite", () => {
+        expect(() => Chroma.randomFloat(Number.NaN, 20)).toThrow();
+        expect(() => Chroma.randomFloat(Number.POSITIVE_INFINITY, 20)).toThrow();
+        expect(() => Chroma.randomFloat(Number.NEGATIVE_INFINITY, 20)).toThrow();
+    });
+
+    it("throws when max is not finite", () => {
+        expect(() => Chroma.randomFloat(10, Number.NaN)).toThrow();
+        expect(() => Chroma.randomFloat(10, Number.POSITIVE_INFINITY)).toThrow();
+        expect(() => Chroma.randomFloat(10, Number.NEGATIVE_INFINITY)).toThrow();
+    });
+
+    it("throws when max is equal to min", () => {
+        expect(() => Chroma.randomFloat(10, 10)).toThrow();
+    });
+
+    it("throws when max is less than min", () => {
+        expect(() => Chroma.randomFloat(20, 10)).toThrow();
     });
 });
