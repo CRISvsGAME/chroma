@@ -240,3 +240,32 @@ describe("Chroma.rgbToCss", () => {
         ).toThrow();
     });
 });
+
+describe("Chroma.contrast", () => {
+    it("returns 21 for black and white", () => {
+        expect(Chroma.contrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 })).toBeCloseTo(21);
+    });
+
+    it("returns 1 for identical colours", () => {
+        expect(Chroma.contrast({ r: 120, g: 80, b: 40 }, { r: 120, g: 80, b: 40 })).toBeCloseTo(1);
+    });
+
+    it("returns the same ratio regardless of colour order", () => {
+        const first = { r: 30, g: 60, b: 90 };
+        const second = { r: 220, g: 230, b: 240 };
+
+        expect(Chroma.contrast(first, second)).toBeCloseTo(Chroma.contrast(second, first));
+    });
+
+    it("returns a known WCAG contrast ratio", () => {
+        expect(Chroma.contrast({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 })).toBeCloseTo(2.1489, 4);
+    });
+
+    it("throws when the first RGB colour is invalid", () => {
+        expect(() => Chroma.contrast({ r: -1, g: 0, b: 0 }, { r: 255, g: 255, b: 255 })).toThrow();
+    });
+
+    it("throws when the second RGB colour is invalid", () => {
+        expect(() => Chroma.contrast({ r: 0, g: 0, b: 0 }, { r: 256, g: 255, b: 255 })).toThrow();
+    });
+});
