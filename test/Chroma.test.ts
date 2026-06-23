@@ -152,3 +152,91 @@ describe("Chroma.randomRgb", () => {
         }
     });
 });
+
+describe("Chroma.rgbToCss", () => {
+    it("converts an RGB object to a CSS rgb() string", () => {
+        expect(
+            Chroma.rgbToCss({
+                r: 12,
+                g: 34,
+                b: 56,
+            }),
+        ).toBe("rgb(12, 34, 56)");
+    });
+
+    it("supports minimum RGB channel values", () => {
+        expect(
+            Chroma.rgbToCss({
+                r: 0,
+                g: 0,
+                b: 0,
+            }),
+        ).toBe("rgb(0, 0, 0)");
+    });
+
+    it("supports maximum RGB channel values", () => {
+        expect(
+            Chroma.rgbToCss({
+                r: 255,
+                g: 255,
+                b: 255,
+            }),
+        ).toBe("rgb(255, 255, 255)");
+    });
+
+    it("throws when a channel is below 0", () => {
+        expect(() =>
+            Chroma.rgbToCss({
+                r: -1,
+                g: 0,
+                b: 0,
+            }),
+        ).toThrow();
+    });
+
+    it("throws when a channel is above 255", () => {
+        expect(() =>
+            Chroma.rgbToCss({
+                r: 256,
+                g: 0,
+                b: 0,
+            }),
+        ).toThrow();
+    });
+
+    it("throws when a channel is not an integer", () => {
+        expect(() =>
+            Chroma.rgbToCss({
+                r: 12.5,
+                g: 0,
+                b: 0,
+            }),
+        ).toThrow();
+    });
+
+    it("throws when a channel is not finite", () => {
+        expect(() =>
+            Chroma.rgbToCss({
+                r: Number.NaN,
+                g: 0,
+                b: 0,
+            }),
+        ).toThrow();
+
+        expect(() =>
+            Chroma.rgbToCss({
+                r: Number.POSITIVE_INFINITY,
+                g: 0,
+                b: 0,
+            }),
+        ).toThrow();
+
+        expect(() =>
+            Chroma.rgbToCss({
+                r: Number.NEGATIVE_INFINITY,
+                g: 0,
+                b: 0,
+            }),
+        ).toThrow();
+    });
+});
