@@ -242,3 +242,88 @@ describe("Chroma.meetsContrast", () => {
         expect(() => Chroma.meetsContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, Number.NaN)).toThrow();
     });
 });
+
+describe("Chroma.adjustToContrast", () => {
+    it("adjusts a colour to meet the default WCAG AA normal contrast ratio", () => {
+        const base = { r: 0, g: 0, b: 0 };
+        const color = { r: 0, g: 0, b: 0 };
+        const adjusted = Chroma.adjustToContrast(base, color);
+
+        expect(Chroma.meetsContrast(base, adjusted)).toBe(true);
+    });
+
+    it("supports a custom contrast ratio", () => {
+        const base = { r: 0, g: 0, b: 0 };
+        const color = { r: 0, g: 0, b: 0 };
+        const adjusted = Chroma.adjustToContrast(base, color, { ratio: Chroma.WCAG_AAA_NORMAL });
+
+        expect(Chroma.meetsContrast(base, adjusted, Chroma.WCAG_AAA_NORMAL)).toBe(true);
+    });
+
+    it("returns a valid RGB colour", () => {
+        const adjusted = Chroma.adjustToContrast({ r: 50, g: 100, b: 150 }, { r: 60, g: 110, b: 160 });
+
+        expect(Number.isInteger(adjusted.r)).toBe(true);
+        expect(Number.isInteger(adjusted.g)).toBe(true);
+        expect(Number.isInteger(adjusted.b)).toBe(true);
+
+        expect(adjusted.r).toBeGreaterThanOrEqual(0);
+        expect(adjusted.r).toBeLessThanOrEqual(255);
+
+        expect(adjusted.g).toBeGreaterThanOrEqual(0);
+        expect(adjusted.g).toBeLessThanOrEqual(255);
+
+        expect(adjusted.b).toBeGreaterThanOrEqual(0);
+        expect(adjusted.b).toBeLessThanOrEqual(255);
+    });
+
+    it("can adjust in the lighter direction", () => {
+        const base = { r: 0, g: 0, b: 0 };
+        const color = { r: 0, g: 0, b: 0 };
+
+        const adjusted = Chroma.adjustToContrast(base, color, { direction: "lighter" });
+
+        expect(Chroma.meetsContrast(base, adjusted)).toBe(true);
+        expect(Chroma.contrast(base, adjusted)).toBeGreaterThanOrEqual(Chroma.WCAG_AA_NORMAL);
+    });
+
+    it("can adjust in the darker direction", () => {
+        const base = { r: 255, g: 255, b: 255 };
+        const color = { r: 255, g: 255, b: 255 };
+        const adjusted = Chroma.adjustToContrast(base, color, { direction: "darker" });
+
+        expect(Chroma.meetsContrast(base, adjusted)).toBe(true);
+        expect(Chroma.contrast(base, adjusted)).toBeGreaterThanOrEqual(Chroma.WCAG_AA_NORMAL);
+    });
+
+    it("supports flexible adjustment", () => {
+        const base = { r: 0, g: 0, b: 0 };
+        const color = { r: 0, g: 0, b: 0 };
+        const adjusted = Chroma.adjustToContrast(base, color, { flexible: true });
+
+        expect(Chroma.meetsContrast(base, adjusted)).toBe(true);
+        expect(Chroma.contrast(base, adjusted)).toBeGreaterThanOrEqual(Chroma.WCAG_AA_NORMAL);
+    });
+
+    it("throws when the base colour is invalid", () => {
+        expect(() => Chroma.adjustToContrast({ r: -1, g: 0, b: 0 }, { r: 255, g: 255, b: 255 })).toThrow();
+    });
+
+    it("throws when the colour to adjust is invalid", () => {
+        expect(() => Chroma.adjustToContrast({ r: 0, g: 0, b: 0 }, { r: 256, g: 255, b: 255 })).toThrow();
+    });
+
+    it("throws when the contrast ratio is invalid", () => {
+        expect(() => Chroma.adjustToContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, { ratio: 0 })).toThrow();
+        expect(() => Chroma.adjustToContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, { ratio: 22 })).toThrow();
+        expect(() => Chroma.adjustToContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, { ratio: Number.NaN })).toThrow();
+    });
+
+    it("throws when the contrast direction is invalid", () => {
+        expect(() => Chroma.adjustToContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, { direction: "invalid" as never })).toThrow();
+    });
+
+    it("throws when flexible is not a boolean", () => {
+        expect(() => Chroma.adjustToContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, { flexible: "yes" as never })).toThrow();
+    });
+});
