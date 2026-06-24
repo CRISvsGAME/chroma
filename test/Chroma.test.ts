@@ -126,11 +126,7 @@ describe("Chroma.randomRgb", () => {
     it("returns an RGB object with r, g, and b channels", () => {
         vi.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValueOnce(0.5).mockReturnValueOnce(0.9999999999999999);
 
-        expect(Chroma.randomRgb()).toEqual({
-            r: 0,
-            g: 128,
-            b: 255,
-        });
+        expect(Chroma.randomRgb()).toEqual({ r: 0, g: 128, b: 255 });
     });
 
     it("returns integer channels inside the RGB range", () => {
@@ -155,89 +151,33 @@ describe("Chroma.randomRgb", () => {
 
 describe("Chroma.rgbToCss", () => {
     it("converts an RGB object to a CSS rgb() string", () => {
-        expect(
-            Chroma.rgbToCss({
-                r: 12,
-                g: 34,
-                b: 56,
-            }),
-        ).toBe("rgb(12, 34, 56)");
+        expect(Chroma.rgbToCss({ r: 12, g: 34, b: 56 })).toBe("rgb(12, 34, 56)");
     });
 
     it("supports minimum RGB channel values", () => {
-        expect(
-            Chroma.rgbToCss({
-                r: 0,
-                g: 0,
-                b: 0,
-            }),
-        ).toBe("rgb(0, 0, 0)");
+        expect(Chroma.rgbToCss({ r: 0, g: 0, b: 0 })).toBe("rgb(0, 0, 0)");
     });
 
     it("supports maximum RGB channel values", () => {
-        expect(
-            Chroma.rgbToCss({
-                r: 255,
-                g: 255,
-                b: 255,
-            }),
-        ).toBe("rgb(255, 255, 255)");
+        expect(Chroma.rgbToCss({ r: 255, g: 255, b: 255 })).toBe("rgb(255, 255, 255)");
     });
 
     it("throws when a channel is below 0", () => {
-        expect(() =>
-            Chroma.rgbToCss({
-                r: -1,
-                g: 0,
-                b: 0,
-            }),
-        ).toThrow();
+        expect(() => Chroma.rgbToCss({ r: -1, g: 0, b: 0 })).toThrow();
     });
 
     it("throws when a channel is above 255", () => {
-        expect(() =>
-            Chroma.rgbToCss({
-                r: 256,
-                g: 0,
-                b: 0,
-            }),
-        ).toThrow();
+        expect(() => Chroma.rgbToCss({ r: 256, g: 0, b: 0 })).toThrow();
     });
 
     it("throws when a channel is not an integer", () => {
-        expect(() =>
-            Chroma.rgbToCss({
-                r: 12.5,
-                g: 0,
-                b: 0,
-            }),
-        ).toThrow();
+        expect(() => Chroma.rgbToCss({ r: 12.5, g: 0, b: 0 })).toThrow();
     });
 
     it("throws when a channel is not finite", () => {
-        expect(() =>
-            Chroma.rgbToCss({
-                r: Number.NaN,
-                g: 0,
-                b: 0,
-            }),
-        ).toThrow();
-
-        expect(() =>
-            Chroma.rgbToCss({
-                r: Number.POSITIVE_INFINITY,
-                g: 0,
-                b: 0,
-            }),
-        ).toThrow();
-
-        expect(() =>
-            Chroma.rgbToCss({
-                r: Number.NEGATIVE_INFINITY,
-                g: 0,
-                b: 0,
-            }),
-        ).toThrow();
+        expect(() => Chroma.rgbToCss({ r: Number.NaN, g: 0, b: 0 })).toThrow();
+        expect(() => Chroma.rgbToCss({ r: Number.POSITIVE_INFINITY, g: 0, b: 0 })).toThrow();
+        expect(() => Chroma.rgbToCss({ r: Number.NEGATIVE_INFINITY, g: 0, b: 0 })).toThrow();
     });
 });
 
@@ -267,5 +207,38 @@ describe("Chroma.contrast", () => {
 
     it("throws when the second RGB colour is invalid", () => {
         expect(() => Chroma.contrast({ r: 0, g: 0, b: 0 }, { r: 256, g: 255, b: 255 })).toThrow();
+    });
+});
+
+describe("Chroma.meetsContrast", () => {
+    it("returns true when colours meet the default WCAG AA normal ratio", () => {
+        expect(Chroma.meetsContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 })).toBe(true);
+    });
+
+    it("returns false when colours do not meet the default WCAG AA normal ratio", () => {
+        expect(Chroma.meetsContrast({ r: 120, g: 120, b: 120 }, { r: 130, g: 130, b: 130 })).toBe(false);
+    });
+
+    it("supports a custom contrast ratio", () => {
+        expect(Chroma.meetsContrast({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 }, 2)).toBe(true);
+        expect(Chroma.meetsContrast({ r: 255, g: 0, b: 0 }, { r: 0, g: 0, b: 255 }, 3)).toBe(false);
+    });
+
+    it("returns true when the contrast is exactly equal to the requested ratio", () => {
+        expect(Chroma.meetsContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, 21)).toBe(true);
+    });
+
+    it("throws when the first RGB colour is invalid", () => {
+        expect(() => Chroma.meetsContrast({ r: -1, g: 0, b: 0 }, { r: 255, g: 255, b: 255 })).toThrow();
+    });
+
+    it("throws when the second RGB colour is invalid", () => {
+        expect(() => Chroma.meetsContrast({ r: 0, g: 0, b: 0 }, { r: 256, g: 255, b: 255 })).toThrow();
+    });
+
+    it("throws when the contrast ratio is invalid", () => {
+        expect(() => Chroma.meetsContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, 0)).toThrow();
+        expect(() => Chroma.meetsContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, 22)).toThrow();
+        expect(() => Chroma.meetsContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, Number.NaN)).toThrow();
     });
 });
