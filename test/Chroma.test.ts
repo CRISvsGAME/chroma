@@ -392,3 +392,45 @@ describe("Chroma.randomWithContrast", () => {
         expect(() => Chroma.randomWithContrast({ r: 0, g: 0, b: 0 }, { flexible: "yes" as never })).toThrow();
     });
 });
+
+describe("Chroma.randomPair", () => {
+    it("returns a valid RGB background and foreground pair", () => {
+        const pair = Chroma.randomPair();
+
+        expect(Number.isInteger(pair.bg.r)).toBe(true);
+        expect(Number.isInteger(pair.bg.g)).toBe(true);
+        expect(Number.isInteger(pair.bg.b)).toBe(true);
+
+        expect(Number.isInteger(pair.fg.r)).toBe(true);
+        expect(Number.isInteger(pair.fg.g)).toBe(true);
+        expect(Number.isInteger(pair.fg.b)).toBe(true);
+
+        expect(pair.bg.r).toBeGreaterThanOrEqual(0);
+        expect(pair.bg.r).toBeLessThanOrEqual(255);
+        expect(pair.bg.g).toBeGreaterThanOrEqual(0);
+        expect(pair.bg.g).toBeLessThanOrEqual(255);
+        expect(pair.bg.b).toBeGreaterThanOrEqual(0);
+        expect(pair.bg.b).toBeLessThanOrEqual(255);
+
+        expect(pair.fg.r).toBeGreaterThanOrEqual(0);
+        expect(pair.fg.r).toBeLessThanOrEqual(255);
+        expect(pair.fg.g).toBeGreaterThanOrEqual(0);
+        expect(pair.fg.g).toBeLessThanOrEqual(255);
+        expect(pair.fg.b).toBeGreaterThanOrEqual(0);
+        expect(pair.fg.b).toBeLessThanOrEqual(255);
+    });
+
+    it("returns a pair that meets WCAG AA normal contrast", () => {
+        const pair = Chroma.randomPair();
+
+        expect(Chroma.meetsContrast(pair.bg, pair.fg)).toBe(true);
+    });
+
+    it("consistently returns accessible pairs", () => {
+        for (let i = 0; i < 1000; i++) {
+            const pair = Chroma.randomPair();
+
+            expect(Chroma.meetsContrast(pair.bg, pair.fg)).toBe(true);
+        }
+    });
+});
