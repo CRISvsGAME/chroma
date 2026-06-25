@@ -327,3 +327,68 @@ describe("Chroma.adjustToContrast", () => {
         expect(() => Chroma.adjustToContrast({ r: 0, g: 0, b: 0 }, { r: 255, g: 255, b: 255 }, { flexible: "yes" as never })).toThrow();
     });
 });
+
+describe("Chroma.randomWithContrast", () => {
+    it("returns a colour that meets the default WCAG AA normal contrast ratio", () => {
+        const base = { r: 0, g: 0, b: 0 };
+        const result = Chroma.randomWithContrast(base);
+
+        expect(Chroma.meetsContrast(base, result)).toBe(true);
+    });
+
+    it("returns a valid RGB colour", () => {
+        const result = Chroma.randomWithContrast({ r: 50, g: 100, b: 150 });
+
+        expect(Number.isInteger(result.r)).toBe(true);
+        expect(Number.isInteger(result.g)).toBe(true);
+        expect(Number.isInteger(result.b)).toBe(true);
+
+        expect(result.r).toBeGreaterThanOrEqual(0);
+        expect(result.r).toBeLessThanOrEqual(255);
+
+        expect(result.g).toBeGreaterThanOrEqual(0);
+        expect(result.g).toBeLessThanOrEqual(255);
+
+        expect(result.b).toBeGreaterThanOrEqual(0);
+        expect(result.b).toBeLessThanOrEqual(255);
+    });
+
+    it("supports a custom contrast ratio", () => {
+        const base = { r: 0, g: 0, b: 0 };
+        const result = Chroma.randomWithContrast(base, { ratio: Chroma.WCAG_AAA_NORMAL });
+
+        expect(Chroma.meetsContrast(base, result, Chroma.WCAG_AAA_NORMAL)).toBe(true);
+    });
+
+    it("supports direction options", () => {
+        const base = { r: 255, g: 255, b: 255 };
+        const result = Chroma.randomWithContrast(base, { direction: "darker" });
+
+        expect(Chroma.meetsContrast(base, result)).toBe(true);
+    });
+
+    it("supports flexible adjustment", () => {
+        const base = { r: 0, g: 0, b: 0 };
+        const result = Chroma.randomWithContrast(base, { flexible: true });
+
+        expect(Chroma.meetsContrast(base, result)).toBe(true);
+    });
+
+    it("throws when the base colour is invalid", () => {
+        expect(() => Chroma.randomWithContrast({ r: -1, g: 0, b: 0 })).toThrow();
+    });
+
+    it("throws when the contrast ratio is invalid", () => {
+        expect(() => Chroma.randomWithContrast({ r: 0, g: 0, b: 0 }, { ratio: 0 })).toThrow();
+        expect(() => Chroma.randomWithContrast({ r: 0, g: 0, b: 0 }, { ratio: 22 })).toThrow();
+        expect(() => Chroma.randomWithContrast({ r: 0, g: 0, b: 0 }, { ratio: Number.NaN })).toThrow();
+    });
+
+    it("throws when the contrast direction is invalid", () => {
+        expect(() => Chroma.randomWithContrast({ r: 0, g: 0, b: 0 }, { direction: "invalid" as never })).toThrow();
+    });
+
+    it("throws when flexible is not a boolean", () => {
+        expect(() => Chroma.randomWithContrast({ r: 0, g: 0, b: 0 }, { flexible: "yes" as never })).toThrow();
+    });
+});
