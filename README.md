@@ -1,6 +1,6 @@
 # Chroma
 
-## Chroma - Lightweight RGB Contrast Utility Library
+## RGB Contrast Utility Library
 
 Chroma is a lightweight, fully typed TypeScript utility library for working with
 CSS RGB colours, random colour generation, and WCAG contrast ratios.
@@ -56,7 +56,7 @@ Chroma can also be imported directly in the browser through jsDelivr:
 
 ```html
 <script type="module">
-    import { Chroma } from "https://cdn.jsdelivr.net/npm/@crisvsgame/chroma@1.0.0/dist/index.js";
+    import { Chroma } from "https://cdn.jsdelivr.net/npm/@crisvsgame/chroma@1.1.0/dist/index.js";
 
     const { bg, fg } = Chroma.randomPair();
 
@@ -78,6 +78,7 @@ Chroma can also be imported directly in the browser through jsDelivr:
 - Contrast checking
 - Contrast adjustment
 - Random accessible colour pairs
+- Zero runtime dependencies
 - Fully typed TypeScript API
 
 ---
@@ -110,8 +111,49 @@ Chroma.randomPair();
 Fully typed imports:
 
 ```typescript
-import { Chroma, type Rgb, type RgbPair, type ContrastOptions, type ContrastDirection } from "@crisvsgame/chroma";
+import { Chroma, VERSION, type Rgb, type RgbPair, type ContrastOptions, type ContrastDirection } from "@crisvsgame/chroma";
+
+console.log(VERSION);
 ```
+
+---
+
+## 📂 Project Structure
+
+```bash
+src/
+    Chroma.ts
+    index.ts
+test/
+    Chroma.test.ts
+dist/ # generated build output published to npm
+    Chroma.d.ts
+    Chroma.d.ts.map
+    Chroma.js
+    Chroma.js.map
+    index.d.ts
+    index.d.ts.map
+    index.js
+    index.js.map
+.gitignore
+LICENSE
+README.md
+package-lock.json
+package.json
+tsconfig.json
+```
+
+---
+
+## 🧪 Testing
+
+Run the test suite:
+
+```bash
+npm test
+```
+
+The tests cover public API behaviour, validation, random helper invariants, and WCAG contrast guarantees.
 
 ---
 
